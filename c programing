@@ -1,0 +1,539 @@
+include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#define MAX
+STUDENTS 100
+_
+#define MAX
+NAME
+LEN 50
+_
+_
+#define MAX
+_
+#define DATA
+ROLL
+LEN 15
+_
+FILE "student
+records.dat"
+_
+_
+struct Student {
+int rollNumber;
+char name[MAX
+NAME
+_
+_
+int marksC;
+int marksMaths;
+int marksPhysics;
+int marksElectronics;
+float totalMarks;
+float percentage;
+char grade[3];
+LEN];
+};
+struct Student students[MAX
+_
+STUDENTS];
+int studentCount = 0;
+int nextRollNumber = 1001;
+void initializeSystem();
+void loadRecordsFromFile();
+void saveRecordsToFile();
+void updateNextRollNumber();
+void displayMainMenu();
+void executeMenuChoice(int choice);
+void pressAnyKeyToContinue();
+void handleAddRecord();
+void handleCalculate(struct Student *s);
+void handleViewAllRecords();
+void handleSearchRecord();
+void handleSortRecords();
+void handleDeleteRecord();
+void generatePerformanceReport();
+void safeInput(char *buffer, int max
+_
+len);
+void assignGrade(float percentage, char *gradeBuffer);
+int main() {
+initializeSystem();
+int choice;
+do {
+displayMainMenu();
+if (scanf("%d"
+, &choice) != 1) {
+printf("\n\t[!] Invalid input. Please enter a number (1-
+8).\n");
+while (getchar() !=
+choice = 0;
+} else {
+'\n');
+executeMenuChoice(choice);
+}
+} while (choice != 8);
+printf("\n[SYSTEM] Saving all student records before exit...\n");
+saveRecordsToFile();
+printf("[SYSTEM] Exiting Student Result Management System.
+Goodbye!\n");
+return 0;
+}
+void initializeSystem() {
+printf("
+--- SRMS Initializing ---\n");
+loadRecordsFromFile();
+updateNextRollNumber();
+printf("Initialization Complete. Loaded %s\n\n"
+, DATA
+_
+FILE);
+}
+void updateNextRollNumber() {
+int maxRoll = 1000;
+for (int i = 0; i < studentCount; i++) {
+if (students[i].rollNumber > maxRoll) {
+maxRoll = students[i].rollNumber;
+}
+}
+nextRollNumber = maxRoll + 1;
+printf("[SYSTEM] NextuniqueRoll Number set to: %d\n"
+nextRollNumber);
+,
+}
+void loadRecordsFromFile() {
+FILE*file=fopen(DATA
+_
+FILE,
+"rb");
+list.\n"
+if (file == NULL) {
+printf("[SYSTEM]Datafile , DATA
+_
+FILE);
+return;
+}
+'%s' not found. Starting with an empty
+if(fread(&studentCount,sizeof(int), 1, file) != 1) {
+studentCount = 0;
+fclose(file);
+return;
+}
+if (studentCount > 0) {
+size
+trecords
+_
+_
+read=fread(students, sizeof(struct Student),
+studentCount, file);
+if(records
+_
+read!=(size
+_
+t)studentCount) {
+printf("[WARNING]Partial data loaded. Expected %d records,
+read%zu.\n"
+, studentCount,records
+_
+read);
+studentCount=(int)records
+_
+read;
+}
+}
+printf("[SYSTEM] Successfully loaded %d student records.\n"
+,
+studentCount);
+fclose(file);
+}
+void saveRecordsToFile() {
+FILE*file=fopen(DATA
+_
+FILE,
+"wb");
+if (file == NULL) {
+return;
+perror("Error:Couldnotopen data file for saving");
+}
+if (fwrite(&studentCount, sizeof(int), 1, file) != 1) {
+perror("Error writing student count");
+fclose(file);
+return;
+}
+if (studentCount > 0) {
+if (fwrite(students, sizeof(struct Student), studentCount, file)
+!= (size
+_
+t)studentCount) {
+perror("Error writing student array block");
+fclose(file);
+return;
+}
+}
+printf("[SYSTEM] Successfully saved %d records to '%s'
+studentCount, DATA
+_
+FILE);
+fclose(file);
+.\n"
+,
+}
+void displayMainMenu() {
+printf("\n\n--------------------------------------------\n");
+printf("| STUDENT RESULT MANAGEMENT SYSTEM (SRMS) |\n");
+printf("
+--------------------------------------------\n");
+printf("| 1. Add New Student Record
+|\n");
+printf("| 2. View All Records
+|\n");
+printf("| 3. Search Record by Roll Number
+|\n");
+printf("| 4. Sort Records by Percentage
+|\n");
+printf("| 5. Generate Performance Report
+|\n");
+printf("| 6. Delete Record
+|\n");
+printf("| 7. System Status (Max %d)
+|\n"
+, MAX
+_
+STUDENTS);
+|\n");
+printf("| 8. Save & Exit
+printf("
+--------------------------------------------\n");
+printf("Enter your choice (1-8): ");
+}
+void executeMenuChoice(int choice) {
+switch (choice) {
+case 1: handleAddRecord(); break;
+case 2: handleViewAllRecords(); break;
+case 3: handleSearchRecord(); break;
+case 4: handleSortRecords(); break;
+case 5: generatePerformanceReport(); break;
+case 6: handleDeleteRecord(); break;
+case 7:
+printf("\n[STATUS] Total Capacity: %d, Records Used: %d,
+Records Free: %d\n"
+,
+MAX
+_
+STUDENTS, studentCount, MAX
+_
+STUDENTS -
+studentCount);
+from 1 to 8.\n"
+pressAnyKeyToContinue();
+break;
+case 8:
+break;
+default:
+printf("\n\t[!] Invalid choice: %d. Please select a number
+, choice);
+pressAnyKeyToContinue();
+}
+}
+void pressAnyKeyToContinue() {
+printf("\n\t[INFO] Press ENTER to continue...
+while (getchar() !=
+'\n');
+getchar();
+");
+}
+void handleAddRecord() {
+if (studentCount >= MAX
+_
+STUDENTS) {
+printf("\n[WARNING] Cannot add record. System limit of %d students
+reached.\n"
+, MAX
+_
+STUDENTS);
+pressAnyKeyToContinue();
+return;
+}
+printf("\n--- ADD NEW STUDENT RECORD ---\n");
+struct Student *s = &students[studentCount];
+s->rollNumber = nextRollNumber++;
+printf("Assigned Roll Number: %d\n"
+, s->rollNumber);
+printf("Enter Student Name (Max %d chars): "
+while (getchar() !=
+'\n');
+safeInput(s->name, MAX
+NAME
+_
+_
+LEN);
+, MAX
+NAME
+_
+_
+LEN - 1);
+printf("Enter Marks for C Programming (0-100): ");
+if (scanf("%d"
+, &s->marksC) != 1 || s->marksC < 0 || s->marksC > 100)
+s->marksC = 0;
+printf("Enter Marks for Mathematics (0-100): ");
+if(scanf("%d"
+, &s->marksMaths) != 1 || s->marksMaths < 0 || s-
+>marksMaths > 100) s->marksMaths = 0;
+printf("Enter Marks for Physics (0-100): ");
+if(scanf("%d"
+, &s->marksPhysics) != 1 || s->marksPhysics < 0 || s-
+>marksPhysics > 100) s->marksPhysics = 0;
+printf("Enter Marks for Electronics (0-100): ");
+if(scanf("%d"
+, &s->marksElectronics) != 1 || s->marksElectronics < 0
+||s->marksElectronics > 100) s->marksElectronics = 0;
+handleCalculate(s);
+studentCount++;
+printf("\n[SUCCESS] Record for %s (Roll %d) added.\n"
+, s->name, s-
+>rollNumber);
+saveRecordsToFile();
+pressAnyKeyToContinue();
+}
+voidhandleCalculate(struct Student *s) {
+intmax
+total
+_
+_
+marks = 400;
+s->totalMarks = s->marksC + s->marksMaths + s->marksPhysics + s-
+>marksElectronics;
+s->percentage = (s->totalMarks / max
+total
+_
+_
+marks) * 100.0f;
+assignGrade(s->percentage, s->grade);
+}
+voidhandleViewAllRecords() {
+printf("\n--- ALL STUDENT RESULTS (%d RECORDS) ---\n"
+if(studentCount == 0) {
+printf("[INFO] No records found.\n");
+pressAnyKeyToContinue();
+return;
+, studentCount);
+}
+printf("
+--------------------------------------------------------------
+---------------------------------------------------\n");
+printf("| Roll No | Name | C | Maths | Phy | Elec |
+Total|Percent | Grade |\n");
+printf("
+--------------------------------------------------------------
+---------------------------------------------------\n");
+for (int i = 0; i < studentCount; i++) {
+struct Student s = students[i];
+printf("| %-7d | %-20s | %-3d | %-5d | %-3d | %-4d | %-5.0f | %-
+7.2f | %-5s |\n"
+,
+s.rollNumber, s.name, s.marksC, s.marksMaths,
+s.marksPhysics, s.marksElectronics,
+s.totalMarks, s.percentage, s.grade);
+}
+printf("
+--------------------------------------------------------------
+---------------------------------------------------\n");
+pressAnyKeyToContinue();
+}
+void handleSearchRecord() {
+printf("\n--- SEARCH RECORD ---\n");
+int search
+_
+roll;
+printf("Enter Roll Number to search: ");
+if (scanf("%d"
+, &search
+_
+roll) != 1) {
+printf("[!] Invalid Roll Number input.\n");
+while (getchar() !=
+'\n');
+pressAnyKeyToContinue();
+return;
+}
+while (getchar() !=
+'\n');
+int found = 0;
+for (int i = 0; i < studentCount; i++) {
+if (students[i].rollNumber == search
+_
+roll) {
+printf("\n[FOUND] Record Details:\n");
+handleViewAllRecords();
+found = 1;
+break;
+}
+}
+if (!found) {
+search
+_
+roll);
+}
+pressAnyKeyToContinue();
+printf("[INFO] Roll Number %d not found in records.\n"
+,
+}
+void handleSortRecords() {
+printf("\n--- SORTING RECORDS (by Percentage: High to Low) ---\n");
+if (studentCount <= 1) {
+printf("[INFO] Not enough records to sort.\n");
+pressAnyKeyToContinue();
+return;
+}
+for (int i = 0; i < studentCount - 1; i++) {
+for (int j = 0; j < studentCount - i - 1; j++) {
+if (students[j].percentage < students[j+1].percentage){
+struct Student temp = students[j];
+students[j] = students[j+1];
+students[j+1] = temp;
+}
+}
+}
+printf("[SUCCESS] Records sorted. Displaying results:\n");
+handleViewAllRecords();
+saveRecordsToFile();
+}
+void handleDeleteRecord() {
+printf("\n--- DELETE RECORD ---\n");
+int delete
+_
+roll;
+printf("Enter Roll Number to delete: ");
+if (scanf("%d"
+, &delete
+_
+roll) != 1) {
+printf("[!] Invalid Roll Number input.\n");
+while (getchar() !=
+'\n');
+pressAnyKeyToContinue();
+return;
+}
+while (getchar() !=
+'\n');
+int found
+_
+index = -1;
+for (int i = 0; i < studentCount; i++) {
+if (students[i].rollNumber == delete
+_
+found
+_
+index = i;
+break;
+roll) {
+}
+}
+if (found
+_
+index != -1) {
+for (int i = found
+_
+index; i < studentCount - 1; i++) {
+students[i] = students[i+1];
+}
+studentCount--;
+delete
+printf("[SUCCESS] Record for Roll Number %d deleted.\n"
+,
+_
+roll);
+saveRecordsToFile();
+} else {
+printf("[WARNING] Roll Number %d not found.\n"
+, delete
+_
+roll);
+}
+pressAnyKeyToContinue();
+}
+void generatePerformanceReport() {
+printf("\n--- CLASS PERFORMANCE REPORT ---\n");
+if (studentCount == 0) {
+printf("[INFO] No records to report on.\n");
+pressAnyKeyToContinue();
+return;
+}
+int passed = 0;
+int failed = 0;
+int distinctions = 0;
+float total
+_percentage = 0.0f;
+for (int i = 0; i < studentCount; i++) {
+total
+_percentage += students[i].percentage;
+if (students[i].percentage >= 40.0f) {
+passed++;
+} else {
+failed++;
+if (students[i].percentage >= 75.0f) {
+distinctions++;
+}
+}
+}
+float average
+_percentage = total
+_percentage / studentCount;
+printf("\n[SUMMARY]\n");
+printf("Total Students Analyzed: %d\n"
+, studentCount);
+printf("Students Passed (>= 40%%): %d\n"
+, passed);
+printf("Students Failed (< 40%%): %d\n"
+, failed);
+printf("Students with Distinction (>= 75%%): %d\n"
+, distinctions);
+printf("Class Average Percentage: %.2f%%\n"
+, average
+_percentage);
+printf("
+----------------------------------------\n");
+pressAnyKeyToContinue();
+}
+void safeInput(char *buffer, int max
+_
+len) {
+if(fgets(buffer, max
+_
+len,stdin)!=NULL) {
+size
+_
+t len = strlen(buffer);
+if(len>0&&buffer[len -1]==
+buffer[len - 1] =
+'\0';
+}
+'\n') {
+}
+}
+void assignGrade(float percentage, char *gradeBuffer) {
+if (percentage >= 90.0f) {
+strcpy(gradeBuffer,
+"A+");
+} else if (percentage >= 80.0f) {
+strcpy(gradeBuffer,
+"A");
+} else if (percentage >= 70.0f) {
+strcpy(gradeBuffer,
+"B+");
+} else if (percentage >= 60.0f) {
+strcpy(gradeBuffer,
+"B");
+} else if (percentage >= 50.0f) {
+strcpy(gradeBuffer,
+"C");
+} else if (percentage >= 40.0f) {
+strcpy(gradeBuffer,
+"D");
+} else {
+strcpy(gradeBuffer,
+"F");
+}
+}
